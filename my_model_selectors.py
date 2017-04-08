@@ -66,6 +66,8 @@ class SelectorBIC(ModelSelector):
 
     http://www2.imm.dtu.dk/courses/02433/doc/ch6_slides.pdf
     Bayesian information criteria: BIC = -2 * logL + p * logN
+                                    p = m^2 + k*m - 1.           --> https://rdrr.io/cran/HMMpa/man/AIC_HMM.html
+                                                    k=2 for normal distribution
     """
 
     def select(self):
@@ -76,9 +78,20 @@ class SelectorBIC(ModelSelector):
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection based on BIC scores
-        raise NotImplementedError
-
+        min_score = float("Inf")
+        best_model = None
+        # for each value of 'n' states to try, train a model for the input word and calculate the BIC score\
+        for n in range(self.min_n_components, self.max_n_components):
+            model = self.base_model(n)
+            logL = model.score(self.X, self.lengths)
+            logN = math.log(len(self.X))
+            p = n**2 + 2*n - 1
+            # calculate the BIC score
+            score= (-2.0 * logL) + (p * logN)
+            if score<min_score:
+                min_score = score
+                best_model = model
+        return best_model
 
 class SelectorDIC(ModelSelector):
     ''' select best model based on Discriminative Information Criterion

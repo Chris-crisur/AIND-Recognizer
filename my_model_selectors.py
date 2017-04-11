@@ -66,8 +66,17 @@ class SelectorBIC(ModelSelector):
 
     http://www2.imm.dtu.dk/courses/02433/doc/ch6_slides.pdf
     Bayesian information criteria: BIC = -2 * logL + p * logN
-                                    p = m^2 + k*m - 1.           --> https://rdrr.io/cran/HMMpa/man/AIC_HMM.html
-                                                    k=2 for normal distribution
+    Assume 
+    # of features = d
+    # of HMM states = n
+	Then
+	# of parameters = 
+    # of probabilities in transition matrix + 
+    # of Gaussian mean + 
+    # of Gaussian variance
+    Accordingly 
+                                    => p = n*(n-1) + (n-1) + 2*d*n
+       									 = n^2 + 2*d*n - 1
     """
 
     def select(self):
@@ -85,7 +94,7 @@ class SelectorBIC(ModelSelector):
                 model = self.base_model(n)
                 logL = model.score(self.X, self.lengths)
                 logN = math.log(len(self.X))
-                p = n ** 2 + 2 * n - 1
+                p = n**2 + 2*model.n_features*n - 1
                 # calculate the BIC score
                 score = (-2.0 * logL) + (p * logN)
                 if score < min_score:
@@ -117,7 +126,6 @@ class SelectorDIC(ModelSelector):
                 if score > best_score:
                     best_score = score
                     best_model = model
-                    print(best_score, best_model.n_components)
             return best_model
         except:
             return self.base_model(self.n_constant)
